@@ -19,7 +19,7 @@ html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Lab 2: GCC Compilation Process: Step-by-Step Guide</title>
+<title>LAB 1: GCC Compilation Pipeline: Step-by-Step Guide</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
   body {{
@@ -43,8 +43,7 @@ html_content = f"""<!DOCTYPE html>
   th {{ background: #f6f8fa; font-weight: 600; }}
   img {{ max-width: 100%; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); margin: 15px 0; border: 1px solid #30363d; background: #0c0c0c; }}
   .badge {{ display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; background: #ddf4ff; color: #0969da; margin-right: 8px; }}
-  .checklist {{ list-style-type: none; padding-left: 0; }}
-  .checklist li::before {{ content: '✔ '; color: #1a7f37; font-weight: bold; }}
+  .summary-box {{ background: #f6f8fa; border: 1px solid #d0d7de; border-left: 5px solid #0969da; padding: 16px 20px; border-radius: 6px; margin: 25px 0; }}
   @media print {{
     body {{ max-width: 100%; margin: 0; padding: 20px; }}
     pre, img {{ break-inside: avoid; }}
@@ -53,8 +52,8 @@ html_content = f"""<!DOCTYPE html>
 </head>
 <body>
 
-<h1>Lab 2: GCC Compilation Process: Step-by-Step Guide</h1>
-<p><strong>Course:</strong> ST5039CMD Programming and Operating System &bull; <strong>Module:</strong> C-Programming Basics / Integration and Process Concept</p>
+<h1>LAB 1: GCC Compilation Pipeline: Step-by-Step Guide</h1>
+<p><strong>Course:</strong> ST5039CMD Programming and Operating System &bull; <strong>Module:</strong> C-Programming Basics / Integration and Process Concept (Lecture 2 &amp; Lab 1)</p>
 <div>
   <span class="badge">GCC Compiler</span>
   <span class="badge">x86-64 Assembly</span>
@@ -62,8 +61,80 @@ html_content = f"""<!DOCTYPE html>
   <span class="badge">Linux Systems</span>
 </div>
 
-<h2>I. Executive Overview &amp; Learning Objectives</h2>
-<p>The compilation of a C program involves four main stages: <strong>Preprocessing</strong>, <strong>Compilation</strong>, <strong>Assembly</strong>, and <strong>Linking</strong>, concluding with OS runtime binary execution. A computer CPU cannot directly parse high-level C code; it executes only binary machine code (0s and 1s). The GNU Compiler Collection (GCC) orchestrates this transformation through a structured pipeline.</p>
+<div class="summary-box">
+  <h2 style="margin-top: 0; border-bottom: none; padding-bottom: 0; color: #0969da;">📌 Executive Summary &amp; Lab Summarization (LAB 1)</h2>
+  <p>The primary objective of <strong>LAB 1</strong> is to dissect the modular compilation architecture executed by the <strong>GNU Compiler Collection (GCC)</strong>. Rather than performing a single opaque translation, GCC drives a pipeline of four distinct phases: <strong>Preprocessing</strong>, <strong>Compilation</strong>, <strong>Assembly</strong>, and <strong>Linking</strong>.</p>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Stage</th>
+        <th>Sub-tool</th>
+        <th>GCC Flag</th>
+        <th>Input</th>
+        <th>Output</th>
+        <th>Format</th>
+        <th>Primary Responsibility</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>0. Source</strong></td>
+        <td>Editor</td>
+        <td>—</td>
+        <td>—</td>
+        <td><code>main.c</code></td>
+        <td>Plain text</td>
+        <td>Human-readable C code with functions, headers, and statements.</td>
+      </tr>
+      <tr>
+        <td><strong>1. Preprocessing</strong></td>
+        <td><code>cpp</code></td>
+        <td><code>-E</code></td>
+        <td><code>main.c</code></td>
+        <td><code>main.i</code></td>
+        <td>Expanded C text</td>
+        <td>Inlines header files (<code>#include</code>), substitutes macros (<code>#define</code>), strips comments, inserts linemarkers.</td>
+      </tr>
+      <tr>
+        <td><strong>2. Compilation</strong></td>
+        <td><code>cc1</code></td>
+        <td><code>-S</code></td>
+        <td><code>main.i</code></td>
+        <td><code>main.s</code></td>
+        <td>x86-64 Assembly</td>
+        <td>Parses C syntax, generates AST, allocates stack frames and registers, emits target assembly mnemonics.</td>
+      </tr>
+      <tr>
+        <td><strong>3. Assembly</strong></td>
+        <td><code>as</code></td>
+        <td><code>-c</code></td>
+        <td><code>main.s</code></td>
+        <td><code>main.o</code></td>
+        <td>ELF Relocatable (Binary)</td>
+        <td>Translates mnemonics into binary CPU machine opcodes; generates relocation entries for external symbols.</td>
+      </tr>
+      <tr>
+        <td><strong>4. Linking</strong></td>
+        <td><code>ld / collect2</code></td>
+        <td><code>-o</code></td>
+        <td><code>main.o</code></td>
+        <td><code>main</code></td>
+        <td>ELF Executable (Binary)</td>
+        <td>Resolves external symbol references (<code>printf</code>), binds dynamic linker, sets entry point address.</td>
+      </tr>
+      <tr>
+        <td><strong>5. Execution</strong></td>
+        <td>Kernel</td>
+        <td><code>./main</code></td>
+        <td><code>main</code></td>
+        <td>stdout</td>
+        <td>Console Stream</td>
+        <td>OS kernel loads ELF segments into RAM via <code>execve</code>, initiates execution at <code>_start -&gt; main</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 <h2>II. C Program Structure &amp; Compilation Flow</h2>
 <pre><code>  [ Source Code: main.c ]
@@ -82,58 +153,58 @@ html_content = f"""<!DOCTYPE html>
             │
             │  Stage 4: Linking (gcc / ld)
             ▼
-  [ Final Executable: main (ELF) ]
+  [ Dynamic Executable: main ]
             │
-            │  Execution: ./main (OS execve -&gt; ld.so)
+            │  Execution: Kernel execve + ld-linux.so
             ▼
-  [ Program Output to stdout ]</code></pre>
+       [ Terminal stdout: "Hello World!" ]</code></pre>
 
 <h2>III. Step-by-Step Practical Demonstration</h2>
 
 <h3>Step 1: Original C Program</h3>
 <ul>
   <li><strong>Objective:</strong> View the original source code.</li>
-  <li><strong>Command:</strong> <code>cat main.c</code></li>
+  <li><strong>Command:</strong> <code>cat src/main.c</code></li>
   <li><strong>Image Placeholder:</strong></li>
 </ul>
-<img src="{img1}" alt="Step 1 - Original Source Code">
-<p><strong>Observation:</strong> Displays the initial C source code written by the programmer. It includes standard library headers (<code>&lt;stdio.h&gt;</code>), defines <code>main()</code>, issues formatted output via <code>printf()</code>, and returns exit code <code>0</code>.</p>
+<img src="{img1}" alt="Step 1: Original C Program">
+<p><strong>Observation:</strong> Displays the initial C source code written by the programmer with <code>#include &lt;stdio.h&gt;</code> and <code>main()</code> returning 0.</p>
 
 <h3>Step 2: Preprocessing</h3>
 <ul>
   <li><strong>Objective:</strong> Process directives like <code>#include</code> and macros to generate the preprocessed source code (<code>.i</code>).</li>
-  <li><strong>Command:</strong> <code>gcc -E main.c -o main.i then head -30 main.i</code></li>
+  <li><strong>Command:</strong> <code>gcc -E src/main.c -o stages/01_preprocess/sample_preprocessed_output.i then head -n 30 stages/01_preprocess/sample_preprocessed_output.i</code></li>
   <li><strong>Image Placeholder:</strong></li>
 </ul>
-<img src="{img2}" alt="Step 2 - Preprocessing Output">
-<p><strong>Observation:</strong> The code expands to include standard library declarations, removing comments and resolving macros. Linemarkers preserve source file line mappings for debugging.</p>
+<img src="{img2}" alt="Step 2: Preprocessing">
+<p><strong>Observation:</strong> The code expands to include standard library declarations, removing comments and resolving macros. Linemarkers preserve debugging traceability.</p>
 
-<h3>Step 3: Compilation (C to Assembly)</h3>
+<h3>Step 3: Compilation</h3>
 <ul>
   <li><strong>Objective:</strong> Convert the preprocessed C code into assembly language (<code>.s</code>).</li>
-  <li><strong>Command:</strong> <code>gcc -S main.i -o main.s then head -30 main.s</code></li>
+  <li><strong>Command:</strong> <code>gcc -S stages/01_preprocess/sample_preprocessed_output.i -o stages/02_compile/main.s then head -n 30 stages/02_compile/main.s</code></li>
   <li><strong>Image Placeholder:</strong></li>
 </ul>
-<img src="{img3}" alt="Step 3 - Assembly Generation">
-<p><strong>Observation:</strong> The compiler translates the C syntax into low-level CPU-specific assembly instructions in AT&amp;T syntax. It allocates stack frames, adheres to the System V AMD64 ABI (<code>%rdi</code> for argument 1, <code>%rax</code> for return value), and emits Intel CET (<code>endbr64</code>) instructions.</p>
+<img src="{img3}" alt="Step 3: Compilation">
+<p><strong>Observation:</strong> The compiler translates the C syntax into low-level CPU-specific assembly instructions (AT&amp;T syntax x86-64), allocating stack frames and calling conventions.</p>
 
-<h3>Step 4: Assembly (Assembly to Object Code)</h3>
+<h3>Step 4: Assembly</h3>
 <ul>
   <li><strong>Objective:</strong> Convert the assembly instructions into machine-readable object code (<code>.o</code>) and inspect it.</li>
-  <li><strong>Command:</strong> <code>gcc -c main.s -o main.o then objdump -d main.o</code></li>
+  <li><strong>Command:</strong> <code>gcc -c stages/02_compile/main.s -o stages/03_assemble/main.o then objdump -d stages/03_assemble/main.o</code></li>
   <li><strong>Image Placeholder:</strong></li>
 </ul>
-<img src="{img4}" alt="Step 4 - Assembly Disassembly">
-<p><strong>Observation:</strong> The assembler creates binary machine code. The <code>objdump</code> tool allows us to view the raw hex format (<code>f3 0f 1e fa</code>, <code>55</code>, <code>48 89 e5</code>) alongside assembly. Zeroed bytes (<code>00 00 00 00</code>) denote relocation placeholders for the linker.</p>
+<img src="{img4}" alt="Step 4: Assembly">
+<p><strong>Observation:</strong> The assembler creates binary machine code. The <code>objdump</code> tool allows viewing raw hex opcodes alongside disassembled mnemonics. Notice external function calls like <code>printf</code> have placeholder offsets.</p>
 
-<h3>Step 5: Linking (Object Code to Executable)</h3>
+<h3>Step 5: Linking</h3>
 <ul>
   <li><strong>Objective:</strong> Combine the object file with required libraries to create the final executable binary.</li>
-  <li><strong>Command:</strong> <code>gcc main.o -o main then file main</code></li>
+  <li><strong>Command:</strong> <code>gcc stages/03_assemble/main.o -o main then file main</code></li>
   <li><strong>Image Placeholder:</strong></li>
 </ul>
-<img src="{img5}" alt="Step 5 - Binary Linking and Identification">
-<p><strong>Observation:</strong> The linker resolves external function calls (like <code>printf</code>), connects runtime initialization code (<code>_start</code>), and creates the final ready-to-run ELF 64-bit dynamic executable with interpreter <code>/lib64/ld-linux-x86-64.so.2</code>.</p>
+<img src="{img5}" alt="Step 5: Linking">
+<p><strong>Observation:</strong> The linker resolves external function calls (like <code>printf</code>), binds the dynamic loader (<code>/lib64/ld-linux-x86-64.so.2</code>), and creates the final ready-to-run ELF executable.</p>
 
 <h3>Step 6: Execution</h3>
 <ul>
@@ -141,34 +212,15 @@ html_content = f"""<!DOCTYPE html>
   <li><strong>Command:</strong> <code>./main</code></li>
   <li><strong>Image Placeholder:</strong></li>
 </ul>
-<img src="{img6}" alt="Step 6 - Program Execution">
-<p><strong>Observation:</strong> The OS executes the compiled binary via <code>execve()</code>, producing the expected output: <code>Hello World!</code>.</p>
-
-<h2>IV. Summary Compilation Reference Table</h2>
-<table>
-  <tr><th>Stage</th><th>GCC Command</th><th>Output File</th><th>Primary Systems Purpose</th></tr>
-  <tr><td><strong>1. Preprocessing</strong></td><td><code>gcc -E main.c -o main.i</code></td><td><code>main.i</code></td><td>Expands headers (<code>#include</code>) and resolves macros (<code>#define</code>).</td></tr>
-  <tr><td><strong>2. Compilation</strong></td><td><code>gcc -S main.i -o main.s</code></td><td><code>main.s</code></td><td>Translates C code into architecture-specific assembly language.</td></tr>
-  <tr><td><strong>3. Assembly</strong></td><td><code>gcc -c main.s -o main.o</code></td><td><code>main.o</code></td><td>Converts assembly instructions into relocatable machine object code.</td></tr>
-  <tr><td><strong>4. Linking</strong></td><td><code>gcc main.o -o main</code></td><td><code>main</code> / <code>a.out</code></td><td>Resolves external library symbols and generates final executable.</td></tr>
-  <tr><td><strong>5. Execution</strong></td><td><code>./main</code></td><td><code>stdout</code></td><td>Kernel loads binary into RAM and executes CPU instructions.</td></tr>
-</table>
-
-<h2>V. Submission Checklist</h2>
-<ul class="checklist">
-  <li>All 4 compilation phases (<code>gcc -E</code>, <code>gcc -S</code>, <code>gcc -c</code>, <code>gcc</code>) documented and demonstrated.</li>
-  <li>Authentic raw terminal console screenshots embedded for all 6 steps.</li>
-  <li>Instruction-by-instruction breakdown of assembly code and System V AMD64 ABI.</li>
-  <li>Machine code disassembly analyzed with hex opcodes and relocation records.</li>
-  <li>ELF file metadata and dynamic interpreter verified.</li>
-  <li>Repository pushed to personal GitHub account with complete commit history.</li>
-</ul>
+<img src="{img6}" alt="Step 6: Execution">
+<p><strong>Observation:</strong> The OS kernel executes the compiled binary via <code>execve</code>, producing the expected output: <code>Hello World!</code>.</p>
 
 </body>
 </html>
 """
 
-out_html = os.path.join(base_dir, "Lab2_GCC_Compilation_Process_Documentation.html")
-with open(out_html, "w", encoding="utf-8") as f:
+output_path = os.path.join(base_dir, "LAB_1_GCC_Compilation_Pipeline_Documentation.html")
+with open(output_path, "w", encoding="utf-8") as f:
     f.write(html_content)
-print("Generated Lab 2 HTML report:", out_html)
+
+print(f"Generated LAB 1 HTML report: {output_path}")
